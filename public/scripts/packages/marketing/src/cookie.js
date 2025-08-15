@@ -35,10 +35,12 @@ function DerivMarketingCookies() {
     "utm_ttclid",
     "utm_sccid",
     // For cases where we need to map the query param to some different name e.g [name_from_query_param, mapped_name]
+    ["msclkid", "utm_msclk_id"],
     ["fbclid", "utm_fbcl_id"],
     ["ttclid", "utm_ttclid"],
     ["ScCid", "utm_sccid"],
   ];
+
 
   const log = (action, details) => {
     let timestamp;
@@ -464,6 +466,74 @@ function DerivMarketingCookies() {
       }
     }
   });
+
+  // Collect STP (Server-side Tagging Parameters) from URL
+  let new_stp_data = {};
+  const stp_fields = [
+    "gclid",
+    "wbraid",
+    "gbraid",
+    "ttclid",
+    "msclkid",
+    ["ScCid", "scclid"],
+  ];
+
+  stp_fields.forEach((field) => {
+    if (Array.isArray(field)) {
+      const [field_key, mapped_field_value] = field;
+      if (searchParams.has(field_key)) {
+        const value = searchParams.get(field_key).substring(0, 200);
+        new_stp_data[mapped_field_value] = value;
+      }
+    } else {
+      if (searchParams.has(field)) {
+        const value = searchParams.get(field).substring(0, 100);
+        new_stp_data[field] = value;
+      }
+    }
+  });
+
+  // Get existing tracking cookies and add them to STP data
+  const fbc_cookie = getCookie("_fbc");
+  const fbp_cookie = getCookie("_fbp");
+  const ga_cookie = getCookie("_ga");
+
+  if (fbc_cookie) {
+    new_stp_data.fbc = fbc_cookie;
+  }
+  if (fbp_cookie) {
+    new_stp_data.fbp = fbp_cookie;
+  }
+  if (ga_cookie) {
+    new_stp_data._ga = ga_cookie;
+  }
+
+  // Get domain-specific Google Analytics measurement ID cookies (_ga_<measurement_ID>)
+  const domain = window.location.hostname.split(".").slice(-2).join(".");
+  
+  // Domain-specific GA measurement ID cookie mapping
+  const domainGaCookieMap = {
+    "deriv.com": "_ga_R0D2Z1965W",
+    "deriv.ae": "_ga_F3QTR4CDHR"
+  };
+  
+  // Get the specific GA measurement ID cookie for this domain
+  const gaMeasurementCookieName = domainGaCookieMap[domain];
+  if (gaMeasurementCookieName) {
+    const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
+    if (gaMeasurementCookie) {
+      new_stp_data[gaMeasurementCookieName] = gaMeasurementCookie;
+    }
+  }
+
+  // Update STP data cookie if we have any data
+  if (Object.keys(new_stp_data).length > 0) {
+    const stp_data_cookie = getCookie("stp_data");
+    if (stp_data_cookie) {
+      eraseCookie("stp_data");
+    }
+    setCookie("stp_data", JSON.stringify(new_stp_data));
+  }
 
   // Early validation: Check for new utm_medium=affiliate without affiliate parameters
   if (new_utm_data.utm_medium === "affiliate" && !hasAffiliateParams) {

@@ -554,7 +554,9 @@ function DerivMarketingCookies() {
     // Try with additional decoding for backward compatibility
     try {
       signup_device_cookie = JSON.parse(
-        decodeURI(signup_device_cookie_unparsed).replaceAll("%2C", ",")
+        decodeURI(signup_device_cookie_unparsed)
+          .replaceAll("%2C", ",")
+          .replaceAll("%3A", ":")
       );
     } catch (e2) {
       console.error("Failed to parse signup_device cookie:", e2);
@@ -586,7 +588,9 @@ function DerivMarketingCookies() {
     // Try with additional decoding for backward compatibility
     try {
       date_first_contact_cookie = JSON.parse(
-        decodeURI(date_first_contact_cookie_unparsed).replaceAll("%2C", ",")
+        decodeURI(date_first_contact_cookie_unparsed)
+          .replaceAll("%2C", ",")
+          .replaceAll("%3A", ":")
       );
     } catch (e2) {
       console.error("Failed to parse date_first_contact cookie:", e2);

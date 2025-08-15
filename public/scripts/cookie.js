@@ -162,7 +162,7 @@ const shouldOverwrite = (new_utm_data, current_utm_data) => {
   /* start handling signup device */
   const signup_device_cookie_unparsed = getCookie("signup_device") || "{}";
   const signup_device_cookie = JSON.parse(
-    decodeURI(signup_device_cookie_unparsed).replaceAll("%2C", ",")
+    decodeURI(signup_device_cookie_unparsed).replaceAll("%2C", ",").replaceAll("%3A", ":")
   );
   if (!signup_device_cookie.signup_device) {
     const signup_data = {

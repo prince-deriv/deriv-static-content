@@ -181,7 +181,7 @@ const shouldOverwrite = (new_utm_data, current_utm_data) => {
   const date_first_contact_cookie_unparsed =
     getCookie("date_first_contact") || "{}";
   const date_first_contact_cookie = JSON.parse(
-    decodeURI(date_first_contact_cookie_unparsed).replaceAll("%2C", ",")
+    decodeURI(date_first_contact_cookie_unparsed).replaceAll("%2C", ",").replaceAll("%3A", ":")
   );
 
   if (!date_first_contact_cookie.date_first_contact) {

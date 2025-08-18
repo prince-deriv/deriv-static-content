@@ -1,5 +1,22 @@
 window.marketingTrackingSent = false;
 
+// Domain-specific GA measurement ID cookie mapping
+const domainGaCookieMap = {
+  "deriv.com": "_ga_R0D2Z1965W",
+  "deriv.ae": "_ga_F3QTR4CDHR"
+};
+
+const getDomain = () => {
+  const host_domain = location.hostname;
+  const allowed_domains = ["deriv.com", "binary.sx"];
+
+  const matched_domain = allowed_domains.find((allowed_domain) =>
+    host_domain.includes(allowed_domain)
+  );
+
+  return matched_domain ?? host_domain;
+};
+
 function DerivMarketingCookies() {
   let cookieData = {
     original: {},
@@ -59,17 +76,6 @@ function DerivMarketingCookies() {
   };
 
   /* utility functions */
-  const getDomain = () => {
-    const host_domain = location.hostname;
-    const allowed_domains = ["deriv.com", "binary.sx"];
-
-    const matched_domain = allowed_domains.find((allowed_domain) =>
-      host_domain.includes(allowed_domain)
-    );
-
-    return matched_domain ?? host_domain;
-  };
-
   const sanitizeCookieValue = (name, value) => {
     if (value === null || value === undefined) {
       return "";
@@ -473,6 +479,7 @@ function DerivMarketingCookies() {
     "gclid",
     "wbraid",
     "gbraid",
+    "fbclid",
     "ttclid",
     "msclkid",
     ["ScCid", "scclid"],
@@ -492,39 +499,6 @@ function DerivMarketingCookies() {
       }
     }
   });
-
-  // Get existing tracking cookies and add them to STP data
-  const fbc_cookie = getCookie("_fbc");
-  const fbp_cookie = getCookie("_fbp");
-  const ga_cookie = getCookie("_ga");
-
-  if (fbc_cookie) {
-    new_stp_data.fbc = fbc_cookie;
-  }
-  if (fbp_cookie) {
-    new_stp_data.fbp = fbp_cookie;
-  }
-  if (ga_cookie) {
-    new_stp_data._ga = ga_cookie;
-  }
-
-  // Get domain-specific Google Analytics measurement ID cookies (_ga_<measurement_ID>)
-  const domain = window.location.hostname.split(".").slice(-2).join(".");
-  
-  // Domain-specific GA measurement ID cookie mapping
-  const domainGaCookieMap = {
-    "deriv.com": "_ga_R0D2Z1965W",
-    "deriv.ae": "_ga_F3QTR4CDHR"
-  };
-  
-  // Get the specific GA measurement ID cookie for this domain
-  const gaMeasurementCookieName = domainGaCookieMap[domain];
-  if (gaMeasurementCookieName) {
-    const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
-    if (gaMeasurementCookie) {
-      new_stp_data[gaMeasurementCookieName] = gaMeasurementCookie;
-    }
-  }
 
   // Update STP data cookie if we have any data
   if (Object.keys(new_stp_data).length > 0) {
@@ -836,6 +810,276 @@ function DerivMarketingCookies() {
 
 DerivMarketingCookies();
 
+// Call UpdateFBC after marketing cookies are processed
+setTimeout(() => {
+  UpdateStpData();
+}, 3000);
+
 window.getMarketingCookies = () => {
   return DerivMarketingCookies();
 };
+
+function UpdateStpData() {
+  const getCookie = (name) => {
+    if (!name) {
+      return null;
+    }
+    
+    try {
+      const encodedName = encodeURIComponent(name);
+      const cookies = document.cookie.split(';');
+      
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+        
+        // Check if this cookie starts with our name
+        if (cookie.startsWith(encodedName + '=')) {
+          const value = cookie.substring(encodedName.length + 1);
+          const decodedValue = decodeURIComponent(value);
+          return decodedValue;
+        }
+        
+        // Also check for non-encoded name for backward compatibility
+        if (cookie.startsWith(name + '=')) {
+          const value = cookie.substring(name.length + 1);
+          let decodedValue;
+          
+          try {
+            decodedValue = decodeURIComponent(value);
+          } catch (e) {
+            // If decoding fails, return the raw value
+            decodedValue = value;
+          }
+          
+          return decodedValue;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Failed to get cookie:', error);
+      return null;
+    }
+  };
+
+  const eraseCookie = (name) => {
+    // Set cookie with past expiration date to delete it
+    const pastDate = new Date(0).toUTCString();
+    const domain = getDomain();
+    
+    try {
+      // Try to delete with current domain
+      document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; domain=${domain}; path=/; SameSite=None; Secure`;
+      
+      // Also try to delete without domain (for cookies set without domain)
+      document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; path=/; SameSite=None; Secure`;
+      
+      // Try with different path variations
+      document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; domain=${domain}; path=/`;
+      document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; path=/`;
+      
+      console.log('UpdateFBC: Erased cookie:', name);
+    } catch (error) {
+      console.error('UpdateFBC: Failed to erase cookie:', error);
+    }
+  };
+
+  const setCookie = (name, value, options = {}) => {
+    const sanitizeCookieValue = (name, value) => {
+      if (value === null || value === undefined) {
+        return "";
+      }
+      let stringValue = typeof value === "string" ? value : String(value);
+      if (stringValue.startsWith('{') || stringValue.startsWith('[')) {
+        try {
+          JSON.parse(stringValue);
+          return stringValue;
+        } catch (e) {
+          console.error(`Invalid JSON in cookie ${name}:`, e);
+        }
+      }
+      const sanitized = stringValue.replace(/[<>'"]/g, "");
+      return sanitized;
+    };
+
+    const sanitizedValue = sanitizeCookieValue(name, value);
+    
+    // Default options - same as main function
+    const defaults = {
+      expires: 365, // days from now
+      domain: getDomain(),
+      path: '/',
+      sameSite: 'None',
+      secure: true
+    };
+    
+    const config = { ...defaults, ...options };
+    
+    // Calculate expiration date - same as main function
+    let expiresString = '';
+    if (config.expires) {
+      const date = new Date();
+      if (typeof config.expires === 'number') {
+        date.setTime(date.getTime() + (config.expires * 24 * 60 * 60 * 1000));
+      } else if (config.expires instanceof Date) {
+        date.setTime(config.expires.getTime());
+      }
+      expiresString = `; expires=${date.toUTCString()}`;
+    }
+    
+    // Build cookie string - same as main function
+    let cookieString = `${encodeURIComponent(name)}=${encodeURIComponent(sanitizedValue)}${expiresString}`;
+    
+    if (config.domain) {
+      cookieString += `; domain=${config.domain}`;
+    }
+    
+    if (config.path) {
+      cookieString += `; path=${config.path}`;
+    }
+    
+    if (config.sameSite) {
+      cookieString += `; SameSite=${config.sameSite}`;
+    }
+    
+    if (config.secure) {
+      cookieString += `; Secure`;
+    }
+    
+    try {
+      document.cookie = cookieString;
+      console.log('UpdateFBC: Cookie set with string:', cookieString);
+      return true;
+    } catch (error) {
+      console.error('UpdateFBC: Failed to set cookie:', error);
+      return false;
+    }
+  };
+
+  const waitForFbcAndUpdate = (retries = 30, interval = 1000) => {
+    return new Promise((resolve, reject) => {
+      const checkAndUpdate = () => {
+        const fbcCookie = getCookie('_fbc');
+        const fbpCookie = getCookie('_fbp');
+        
+        if (fbcCookie) {
+          // Get the latest stp_data in case it was updated while waiting
+          const latestStpDataCookie = getCookie('stp_data');
+          let latestStpData;
+          
+          try {
+            latestStpData = latestStpDataCookie ? JSON.parse(latestStpDataCookie) : {};
+          } catch (e) {
+            console.error('UpdateFBC: Failed to parse latest stp_data cookie:', e);
+            latestStpData = {};
+          }
+          
+          if (fbpCookie) {
+            latestStpData.fbp = fbpCookie;
+          }
+
+          // Add fbc to stp_data
+          latestStpData.fbc = fbcCookie;
+          eraseCookie('stp_data');
+          setCookie('stp_data', JSON.stringify(latestStpData));
+          console.log('UpdateFBC: Added _fbc to stp_data after waiting:', fbcCookie);
+          resolve(fbcCookie);
+        } else if (retries > 0) {
+          retries--;
+          setTimeout(checkAndUpdate, interval);
+        } else {
+          reject(new Error('_fbc cookie not found after waiting'));
+        }
+      };
+      
+      checkAndUpdate();
+    });
+  };
+
+  // Get the current stp_data cookie
+  const stpDataCookie = getCookie('stp_data');
+  console.log("stpData", stpDataCookie);
+  
+  if (!stpDataCookie) {
+    console.log('UpdateFBC: No stp_data cookie found');
+    return;
+  }
+
+  let stpData;
+  try {
+    stpData = JSON.parse(stpDataCookie);
+  } catch (e) {
+    console.error('UpdateFBC: Failed to parse stp_data cookie:', e);
+    return;
+  }
+
+  // Get existing tracking cookies and add them to STP data
+  const fbc_cookie = getCookie("_fbc");
+  const fbp_cookie = getCookie("_fbp");
+  const ga_cookie = getCookie("_ga");
+
+  if (fbc_cookie) {
+    stpData.fbc = fbc_cookie;
+  }
+  if (fbp_cookie) {
+    stpData.fbp = fbp_cookie;
+  }
+  if (ga_cookie) {
+    stpData._ga = ga_cookie;
+  }
+
+  console.log("stp_data", stpData)
+  // Get domain-specific Google Analytics measurement ID cookies (_ga_<measurement_ID>)
+  const domain = window.location.hostname.split(".").slice(-2).join(".");
+  
+  // Get the specific GA measurement ID cookie for this domain
+  const gaMeasurementCookieName = domainGaCookieMap[domain];
+  if (gaMeasurementCookieName) {
+    const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
+    if (gaMeasurementCookie) {
+      stpData[gaMeasurementCookieName] = gaMeasurementCookie;
+    }
+  }
+
+  // Update STP data cookie if we have any data
+  if (Object.keys(stpData).length > 0) {
+    setCookie("stp_data", JSON.stringify(stpData));
+  }
+
+  // Check if fbclid is available in stp_data
+  if (!stpData.fbclid) {
+    console.log('UpdateFBC: No fbclid found in stp_data');
+    return;
+  }
+
+  // Check if fbc is already set in stp_data
+  if (stpData.fbc) {
+    console.log('UpdateFBC: fbc already exists in stp_data');
+    return;
+  }
+
+  // Check if _fbc cookie exists
+  const fbcCookie = getCookie('_fbc');
+  
+  if (fbcCookie) {
+    // _fbc cookie exists, add it to stp_data immediately
+    stpData.fbc = fbcCookie;
+    eraseCookie('stp_data');
+    setCookie('stp_data', JSON.stringify(stpData));
+    console.log('UpdateFBC: Added existing _fbc to stp_data:', fbcCookie);
+  } else {
+    // _fbc cookie doesn't exist, wait for it and update stp_data when found
+    console.log('UpdateFBC: Waiting for _fbc cookie...');
+    
+    waitForFbcAndUpdate()
+      .then((fbcValue) => {
+        console.log('UpdateFBC: Successfully completed - fbc added to stp_data:', fbcValue);
+      })
+      .catch((error) => {
+        console.warn('UpdateFBC: Failed to get _fbc cookie:', error.message);
+      });
+  }
+}
+
+// Make UpdateFBC available globally
+window.UpdateStpData = UpdateStpData;

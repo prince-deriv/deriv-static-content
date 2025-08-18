@@ -878,9 +878,8 @@ function UpdateStpData() {
       document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; domain=${domain}; path=/`;
       document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; path=/`;
       
-      console.log('UpdateFBC: Erased cookie:', name);
     } catch (error) {
-      console.error('UpdateFBC: Failed to erase cookie:', error);
+      console.warn('UpdateFBC: Failed to erase cookie:', error);
     }
   };
 
@@ -895,7 +894,7 @@ function UpdateStpData() {
           JSON.parse(stringValue);
           return stringValue;
         } catch (e) {
-          console.error(`Invalid JSON in cookie ${name}:`, e);
+          console.warn(`Invalid JSON in cookie ${name}:`, e);
         }
       }
       const sanitized = stringValue.replace(/[<>'"]/g, "");
@@ -948,10 +947,8 @@ function UpdateStpData() {
     
     try {
       document.cookie = cookieString;
-      console.log('UpdateFBC: Cookie set with string:', cookieString);
       return true;
     } catch (error) {
-      console.error('UpdateFBC: Failed to set cookie:', error);
       return false;
     }
   };
@@ -970,7 +967,6 @@ function UpdateStpData() {
           try {
             latestStpData = latestStpDataCookie ? JSON.parse(latestStpDataCookie) : {};
           } catch (e) {
-            console.error('UpdateFBC: Failed to parse latest stp_data cookie:', e);
             latestStpData = {};
           }
           
@@ -982,7 +978,6 @@ function UpdateStpData() {
           latestStpData.fbc = fbcCookie;
           eraseCookie('stp_data');
           setCookie('stp_data', JSON.stringify(latestStpData));
-          console.log('UpdateFBC: Added _fbc to stp_data after waiting:', fbcCookie);
           resolve(fbcCookie);
         } else if (retries > 0) {
           retries--;
@@ -998,10 +993,8 @@ function UpdateStpData() {
 
   // Get the current stp_data cookie
   const stpDataCookie = getCookie('stp_data');
-  console.log("stpData", stpDataCookie);
   
   if (!stpDataCookie) {
-    console.log('UpdateFBC: No stp_data cookie found');
     return;
   }
 
@@ -1009,7 +1002,6 @@ function UpdateStpData() {
   try {
     stpData = JSON.parse(stpDataCookie);
   } catch (e) {
-    console.error('UpdateFBC: Failed to parse stp_data cookie:', e);
     return;
   }
 
@@ -1028,7 +1020,6 @@ function UpdateStpData() {
     stpData._ga = ga_cookie;
   }
 
-  console.log("stp_data", stpData)
   // Get domain-specific Google Analytics measurement ID cookies (_ga_<measurement_ID>)
   const domain = window.location.hostname.split(".").slice(-2).join(".");
   
@@ -1048,13 +1039,11 @@ function UpdateStpData() {
 
   // Check if fbclid is available in stp_data
   if (!stpData.fbclid) {
-    console.log('UpdateFBC: No fbclid found in stp_data');
     return;
   }
 
   // Check if fbc is already set in stp_data
   if (stpData.fbc) {
-    console.log('UpdateFBC: fbc already exists in stp_data');
     return;
   }
 
@@ -1066,14 +1055,10 @@ function UpdateStpData() {
     stpData.fbc = fbcCookie;
     eraseCookie('stp_data');
     setCookie('stp_data', JSON.stringify(stpData));
-    console.log('UpdateFBC: Added existing _fbc to stp_data:', fbcCookie);
   } else {
-    // _fbc cookie doesn't exist, wait for it and update stp_data when found
-    console.log('UpdateFBC: Waiting for _fbc cookie...');
-    
+    // _fbc cookie doesn't exist, wait for it and update stp_data when found    
     waitForFbcAndUpdate()
       .then((fbcValue) => {
-        console.log('UpdateFBC: Successfully completed - fbc added to stp_data:', fbcValue);
       })
       .catch((error) => {
         console.warn('UpdateFBC: Failed to get _fbc cookie:', error.message);

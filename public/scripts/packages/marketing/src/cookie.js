@@ -1,5 +1,86 @@
 window.marketingTrackingSent = false;
 
+/* utility functions */
+const sanitizeCookieValue = (name, value) => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  // Convert to string if not already
+  let stringValue = typeof value === "string" ? value : String(value);
+  
+  // For JSON strings, validate and return as-is if valid
+  if (stringValue.startsWith('{') || stringValue.startsWith('[')) {
+    try {
+      JSON.parse(stringValue);
+      // If it's valid JSON, return as-is (encoding will happen in setCookie)
+      return stringValue;
+    } catch (e) {
+      // If invalid JSON, sanitize it
+      console.error(`Invalid JSON in cookie ${name}:`, e);
+    }
+  }
+  
+  // For non-JSON strings, apply basic sanitization
+  // Allow more characters for URLs, UTM parameters, etc.
+  const sanitized = stringValue.replace(/[<>'"]/g, "");
+  
+  return sanitized;
+};
+
+const getDomain = () => {
+  const host_domain = location.hostname;
+  const allowed_domains = ["deriv.com", "binary.sx"];
+
+  const matched_domain = allowed_domains.find((allowed_domain) =>
+    host_domain.includes(allowed_domain)
+  );
+
+  return matched_domain ?? host_domain;
+};
+
+const getCookie = (name) => {
+  if (!name) {
+    return null;
+  }
+  
+  try {
+    const encodedName = encodeURIComponent(name);
+    const cookies = document.cookie.split(';');
+    
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      
+      // Check if this cookie starts with our name
+      if (cookie.startsWith(encodedName + '=')) {
+        const value = cookie.substring(encodedName.length + 1);
+        const decodedValue = decodeURIComponent(value);
+        return decodedValue;
+      }
+      
+      // Also check for non-encoded name for backward compatibility
+      if (cookie.startsWith(name + '=')) {
+        const value = cookie.substring(name.length + 1);
+        let decodedValue;
+        
+        try {
+          decodedValue = decodeURIComponent(value);
+        } catch (e) {
+          // If decoding fails, return the raw value
+          decodedValue = value;
+        }
+        
+        return decodedValue;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Failed to get cookie:', error);
+    return null;
+  }
+};
+
 function DerivMarketingCookies() {
   let cookieData = {
     original: {},
@@ -35,6 +116,7 @@ function DerivMarketingCookies() {
     "utm_ttclid",
     "utm_sccid",
     // For cases where we need to map the query param to some different name e.g [name_from_query_param, mapped_name]
+    ["msclkid", "utm_msclk_id"],
     ["fbclid", "utm_fbcl_id"],
     ["ttclid", "utm_ttclid"],
     ["ScCid", "utm_sccid"],
@@ -54,45 +136,6 @@ function DerivMarketingCookies() {
       action,
       details,
     });
-  };
-
-  /* utility functions */
-  const getDomain = () => {
-    const host_domain = location.hostname;
-    const allowed_domains = ["deriv.com", "binary.sx"];
-
-    const matched_domain = allowed_domains.find((allowed_domain) =>
-      host_domain.includes(allowed_domain)
-    );
-
-    return matched_domain ?? host_domain;
-  };
-
-  const sanitizeCookieValue = (name, value) => {
-    if (value === null || value === undefined) {
-      return "";
-    }
-
-    // Convert to string if not already
-    let stringValue = typeof value === "string" ? value : String(value);
-    
-    // For JSON strings, validate and return as-is if valid
-    if (stringValue.startsWith('{') || stringValue.startsWith('[')) {
-      try {
-        JSON.parse(stringValue);
-        // If it's valid JSON, return as-is (encoding will happen in setCookie)
-        return stringValue;
-      } catch (e) {
-        // If invalid JSON, sanitize it
-        console.error(`Invalid JSON in cookie ${name}:`, e);
-      }
-    }
-    
-    // For non-JSON strings, apply basic sanitization
-    // Allow more characters for URLs, UTM parameters, etc.
-    const sanitized = stringValue.replace(/[<>'"]/g, "");
-    
-    return sanitized;
   };
 
   const setCookie = (name, value, options = {}) => {
@@ -189,48 +232,6 @@ function DerivMarketingCookies() {
     delete window.marketingCookies[name];
     delete cookieData.original[name];
     delete cookieData.sanitized[name];
-  };
-
-  const getCookie = (name) => {
-    if (!name) {
-      return null;
-    }
-    
-    try {
-      const encodedName = encodeURIComponent(name);
-      const cookies = document.cookie.split(';');
-      
-      for (let cookie of cookies) {
-        cookie = cookie.trim();
-        
-        // Check if this cookie starts with our name
-        if (cookie.startsWith(encodedName + '=')) {
-          const value = cookie.substring(encodedName.length + 1);
-          const decodedValue = decodeURIComponent(value);
-          return decodedValue;
-        }
-        
-        // Also check for non-encoded name for backward compatibility
-        if (cookie.startsWith(name + '=')) {
-          const value = cookie.substring(name.length + 1);
-          let decodedValue;
-          
-          try {
-            decodedValue = decodeURIComponent(value);
-          } catch (e) {
-            // If decoding fails, return the raw value
-            decodedValue = value;
-          }
-          
-          return decodedValue;
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Failed to get cookie:', error);
-      return null;
-    }
   };
 
   const isMobile = () => {
@@ -464,6 +465,41 @@ function DerivMarketingCookies() {
       }
     }
   });
+
+  // Collect STP (Server-side Tagging Parameters) from URL
+  let new_stp_data = {};
+  const stp_fields = [
+    "gclid",
+    "wbraid",
+    "gbraid",
+    "ttclid",
+    "msclkid",
+    ["ScCid", "scclid"],
+  ];
+
+  stp_fields.forEach((field) => {
+    if (Array.isArray(field)) {
+      const [field_key, mapped_field_value] = field;
+      if (searchParams.has(field_key)) {
+        const value = searchParams.get(field_key).substring(0, 200);
+        new_stp_data[mapped_field_value] = value;
+      }
+    } else {
+      if (searchParams.has(field)) {
+        const value = searchParams.get(field).substring(0, 100);
+        new_stp_data[field] = value;
+      }
+    }
+  });
+
+  // Update STP data cookie if we have any data
+  if (Object.keys(new_stp_data).length > 0) {
+    const stp_data_cookie = getCookie("stp_data");
+    if (stp_data_cookie) {
+      eraseCookie("stp_data");
+    }
+    setCookie("stp_data", JSON.stringify(new_stp_data));
+  }
 
   // Early validation: Check for new utm_medium=affiliate without affiliate parameters
   if (new_utm_data.utm_medium === "affiliate" && !hasAffiliateParams) {
@@ -766,6 +802,108 @@ function DerivMarketingCookies() {
 
 DerivMarketingCookies();
 
+addStpCookieData();
+
 window.getMarketingCookies = () => {
   return DerivMarketingCookies();
 };
+
+function addStpCookieData() {
+  const setCookie = (name, value, options = {}) => {
+    const sanitizedValue = sanitizeCookieValue(name, value);
+    
+    // Default options - same as main function
+    const defaults = {
+      expires: 365, // days from now
+      domain: getDomain(),
+      path: '/',
+      sameSite: 'None',
+      secure: true
+    };
+    
+    const config = { ...defaults, ...options };
+    
+    // Calculate expiration date - same as main function
+    let expiresString = '';
+    if (config.expires) {
+      const date = new Date();
+      if (typeof config.expires === 'number') {
+        date.setTime(date.getTime() + (config.expires * 24 * 60 * 60 * 1000));
+      } else if (config.expires instanceof Date) {
+        date.setTime(config.expires.getTime());
+      }
+      expiresString = `; expires=${date.toUTCString()}`;
+    }
+    
+    // Build cookie string - same as main function
+    let cookieString = `${encodeURIComponent(name)}=${encodeURIComponent(sanitizedValue)}${expiresString}`;
+    
+    if (config.domain) {
+      cookieString += `; domain=${config.domain}`;
+    }
+    
+    if (config.path) {
+      cookieString += `; path=${config.path}`;
+    }
+    
+    if (config.sameSite) {
+      cookieString += `; SameSite=${config.sameSite}`;
+    }
+    
+    if (config.secure) {
+      cookieString += `; Secure`;
+    }
+    
+    try {
+      document.cookie = cookieString;
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Get the current stp_data cookie
+  const stpDataCookie = getCookie('stp_data');
+  
+  let stpData = {};
+  
+  // Parse existing stp_data if it exists, otherwise start with empty object
+  if (stpDataCookie) {
+    try {
+      stpData = JSON.parse(stpDataCookie);
+    } catch (e) {
+      console.warn('Failed to parse existing stp_data cookie, starting fresh:', e);
+      stpData = {};
+    }
+  }
+
+  // Get existing tracking cookies and add them to STP data
+  const fbc_cookie = getCookie("_fbc");
+  const fbp_cookie = getCookie("_fbp");
+  const ga_cookie = getCookie("_ga");
+
+  if (fbc_cookie) {
+    stpData.fbc = fbc_cookie;
+  }
+  if (fbp_cookie) {
+    stpData.fbp = fbp_cookie;
+  }
+  if (ga_cookie) {
+    stpData._ga = ga_cookie;
+  }
+
+  // Get the specific GA measurement ID 
+  const gaMeasurementCookieName = "_ga_R0D2Z1965W";
+  const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
+  if (gaMeasurementCookie) {
+    stpData._ga_measurement_id = gaMeasurementCookieName;
+    stpData._ga_measurement_value = gaMeasurementCookie;
+  }
+
+  // Always set the STP data cookie, even if it's empty initially
+  // This ensures the cookie exists and can be updated later
+  setCookie("stp_data", JSON.stringify(stpData));
+}
+
+// Make UpdateFBC available globally
+window.addStpCookieData = addStpCookieData;

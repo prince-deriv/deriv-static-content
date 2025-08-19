@@ -1,11 +1,5 @@
 window.marketingTrackingSent = false;
 
-// Domain-specific GA measurement ID cookie mapping
-const domainGaCookieMap = {
-  "deriv.com": "_ga_R0D2Z1965W",
-  "deriv.ae": "_ga_F3QTR4CDHR"
-};
-
 /* utility functions */
 const sanitizeCookieValue = (name, value) => {
   if (value === null || value === undefined) {
@@ -808,13 +802,13 @@ function DerivMarketingCookies() {
 
 DerivMarketingCookies();
 
-UpdateStpData();
+addStpCookieData();
 
 window.getMarketingCookies = () => {
   return DerivMarketingCookies();
 };
 
-function UpdateStpData() {
+function addStpCookieData() {
   const setCookie = (name, value, options = {}) => {
     const sanitizedValue = sanitizeCookieValue(name, value);
     
@@ -898,17 +892,12 @@ function UpdateStpData() {
     stpData._ga = ga_cookie;
   }
 
-  // Get domain-specific Google Analytics measurement ID cookies (_ga_<measurement_ID>)
-  const domain = window.location.hostname.split(".").slice(-2).join(".");
-  
-  // Get the specific GA measurement ID cookie for this domain
-  const gaMeasurementCookieName = domainGaCookieMap[domain];
-  if (gaMeasurementCookieName) {
-    const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
-    if (gaMeasurementCookie) {
-      stpData._ga_measurement_id = gaMeasurementCookieName;
-      stpData._ga_measurement_value = gaMeasurementCookie;
-    }
+  // Get the specific GA measurement ID 
+  const gaMeasurementCookieName = "_ga_R0D2Z1965W";
+  const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
+  if (gaMeasurementCookie) {
+    stpData._ga_measurement_id = gaMeasurementCookieName;
+    stpData._ga_measurement_value = gaMeasurementCookie;
   }
 
   // Always set the STP data cookie, even if it's empty initially
@@ -917,4 +906,4 @@ function UpdateStpData() {
 }
 
 // Make UpdateFBC available globally
-window.UpdateStpData = UpdateStpData;
+window.addStpCookieData = addStpCookieData;

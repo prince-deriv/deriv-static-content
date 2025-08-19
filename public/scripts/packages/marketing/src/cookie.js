@@ -128,7 +128,6 @@ function DerivMarketingCookies() {
     ["ScCid", "utm_sccid"],
   ];
 
-
   const log = (action, details) => {
     let timestamp;
     try {
@@ -479,7 +478,6 @@ function DerivMarketingCookies() {
     "gclid",
     "wbraid",
     "gbraid",
-    "fbclid",
     "ttclid",
     "msclkid",
     ["ScCid", "scclid"],

@@ -6,6 +6,34 @@ const domainGaCookieMap = {
   "deriv.ae": "_ga_F3QTR4CDHR"
 };
 
+/* utility functions */
+const sanitizeCookieValue = (name, value) => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  // Convert to string if not already
+  let stringValue = typeof value === "string" ? value : String(value);
+  
+  // For JSON strings, validate and return as-is if valid
+  if (stringValue.startsWith('{') || stringValue.startsWith('[')) {
+    try {
+      JSON.parse(stringValue);
+      // If it's valid JSON, return as-is (encoding will happen in setCookie)
+      return stringValue;
+    } catch (e) {
+      // If invalid JSON, sanitize it
+      console.error(`Invalid JSON in cookie ${name}:`, e);
+    }
+  }
+  
+  // For non-JSON strings, apply basic sanitization
+  // Allow more characters for URLs, UTM parameters, etc.
+  const sanitized = stringValue.replace(/[<>'"]/g, "");
+  
+  return sanitized;
+};
+
 const getDomain = () => {
   const host_domain = location.hostname;
   const allowed_domains = ["deriv.com", "binary.sx"];
@@ -15,6 +43,48 @@ const getDomain = () => {
   );
 
   return matched_domain ?? host_domain;
+};
+
+const getCookie = (name) => {
+  if (!name) {
+    return null;
+  }
+  
+  try {
+    const encodedName = encodeURIComponent(name);
+    const cookies = document.cookie.split(';');
+    
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      
+      // Check if this cookie starts with our name
+      if (cookie.startsWith(encodedName + '=')) {
+        const value = cookie.substring(encodedName.length + 1);
+        const decodedValue = decodeURIComponent(value);
+        return decodedValue;
+      }
+      
+      // Also check for non-encoded name for backward compatibility
+      if (cookie.startsWith(name + '=')) {
+        const value = cookie.substring(name.length + 1);
+        let decodedValue;
+        
+        try {
+          decodedValue = decodeURIComponent(value);
+        } catch (e) {
+          // If decoding fails, return the raw value
+          decodedValue = value;
+        }
+        
+        return decodedValue;
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Failed to get cookie:', error);
+    return null;
+  }
 };
 
 function DerivMarketingCookies() {
@@ -73,34 +143,6 @@ function DerivMarketingCookies() {
       action,
       details,
     });
-  };
-
-  /* utility functions */
-  const sanitizeCookieValue = (name, value) => {
-    if (value === null || value === undefined) {
-      return "";
-    }
-
-    // Convert to string if not already
-    let stringValue = typeof value === "string" ? value : String(value);
-    
-    // For JSON strings, validate and return as-is if valid
-    if (stringValue.startsWith('{') || stringValue.startsWith('[')) {
-      try {
-        JSON.parse(stringValue);
-        // If it's valid JSON, return as-is (encoding will happen in setCookie)
-        return stringValue;
-      } catch (e) {
-        // If invalid JSON, sanitize it
-        console.error(`Invalid JSON in cookie ${name}:`, e);
-      }
-    }
-    
-    // For non-JSON strings, apply basic sanitization
-    // Allow more characters for URLs, UTM parameters, etc.
-    const sanitized = stringValue.replace(/[<>'"]/g, "");
-    
-    return sanitized;
   };
 
   const setCookie = (name, value, options = {}) => {
@@ -197,48 +239,6 @@ function DerivMarketingCookies() {
     delete window.marketingCookies[name];
     delete cookieData.original[name];
     delete cookieData.sanitized[name];
-  };
-
-  const getCookie = (name) => {
-    if (!name) {
-      return null;
-    }
-    
-    try {
-      const encodedName = encodeURIComponent(name);
-      const cookies = document.cookie.split(';');
-      
-      for (let cookie of cookies) {
-        cookie = cookie.trim();
-        
-        // Check if this cookie starts with our name
-        if (cookie.startsWith(encodedName + '=')) {
-          const value = cookie.substring(encodedName.length + 1);
-          const decodedValue = decodeURIComponent(value);
-          return decodedValue;
-        }
-        
-        // Also check for non-encoded name for backward compatibility
-        if (cookie.startsWith(name + '=')) {
-          const value = cookie.substring(name.length + 1);
-          let decodedValue;
-          
-          try {
-            decodedValue = decodeURIComponent(value);
-          } catch (e) {
-            // If decoding fails, return the raw value
-            decodedValue = value;
-          }
-          
-          return decodedValue;
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Failed to get cookie:', error);
-      return null;
-    }
   };
 
   const isMobile = () => {
@@ -817,66 +817,7 @@ window.getMarketingCookies = () => {
 };
 
 function UpdateStpData() {
-  const getCookie = (name) => {
-    if (!name) {
-      return null;
-    }
-    
-    try {
-      const encodedName = encodeURIComponent(name);
-      const cookies = document.cookie.split(';');
-      
-      for (let cookie of cookies) {
-        cookie = cookie.trim();
-        
-        // Check if this cookie starts with our name
-        if (cookie.startsWith(encodedName + '=')) {
-          const value = cookie.substring(encodedName.length + 1);
-          const decodedValue = decodeURIComponent(value);
-          return decodedValue;
-        }
-        
-        // Also check for non-encoded name for backward compatibility
-        if (cookie.startsWith(name + '=')) {
-          const value = cookie.substring(name.length + 1);
-          let decodedValue;
-          
-          try {
-            decodedValue = decodeURIComponent(value);
-          } catch (e) {
-            // If decoding fails, return the raw value
-            decodedValue = value;
-          }
-          
-          return decodedValue;
-        }
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Failed to get cookie:', error);
-      return null;
-    }
-  };
-
   const setCookie = (name, value, options = {}) => {
-    const sanitizeCookieValue = (name, value) => {
-      if (value === null || value === undefined) {
-        return "";
-      }
-      let stringValue = typeof value === "string" ? value : String(value);
-      if (stringValue.startsWith('{') || stringValue.startsWith('[')) {
-        try {
-          JSON.parse(stringValue);
-          return stringValue;
-        } catch (e) {
-          console.warn(`Invalid JSON in cookie ${name}:`, e);
-        }
-      }
-      const sanitized = stringValue.replace(/[<>'"]/g, "");
-      return sanitized;
-    };
-
     const sanitizedValue = sanitizeCookieValue(name, value);
     
     // Default options - same as main function

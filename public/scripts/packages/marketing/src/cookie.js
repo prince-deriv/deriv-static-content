@@ -871,15 +871,16 @@ function UpdateStpData() {
   // Get the current stp_data cookie
   const stpDataCookie = getCookie('stp_data');
   
-  if (!stpDataCookie) {
-    return;
-  }
-
-  let stpData;
-  try {
-    stpData = JSON.parse(stpDataCookie);
-  } catch (e) {
-    return;
+  let stpData = {};
+  
+  // Parse existing stp_data if it exists, otherwise start with empty object
+  if (stpDataCookie) {
+    try {
+      stpData = JSON.parse(stpDataCookie);
+    } catch (e) {
+      console.warn('Failed to parse existing stp_data cookie, starting fresh:', e);
+      stpData = {};
+    }
   }
 
   // Get existing tracking cookies and add them to STP data
@@ -905,15 +906,14 @@ function UpdateStpData() {
   if (gaMeasurementCookieName) {
     const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
     if (gaMeasurementCookie) {
-      stpData[gaMeasurementCookieName] = gaMeasurementCookie;
+      stpData._ga_measurement_id = gaMeasurementCookieName;
+      stpData._ga_measurement_value = gaMeasurementCookie;
     }
   }
 
-  // Update STP data cookie if we have any data
-  if (Object.keys(stpData).length > 0) {
-    setCookie("stp_data", JSON.stringify(stpData));
-  }
-
+  // Always set the STP data cookie, even if it's empty initially
+  // This ensures the cookie exists and can be updated later
+  setCookie("stp_data", JSON.stringify(stpData));
 }
 
 // Make UpdateFBC available globally

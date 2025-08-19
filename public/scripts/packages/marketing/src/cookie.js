@@ -810,10 +810,7 @@ function DerivMarketingCookies() {
 
 DerivMarketingCookies();
 
-// Call UpdateFBC after marketing cookies are processed
-setTimeout(() => {
-  UpdateStpData();
-}, 3000);
+UpdateStpData();
 
 window.getMarketingCookies = () => {
   return DerivMarketingCookies();
@@ -859,27 +856,6 @@ function UpdateStpData() {
     } catch (error) {
       console.error('Failed to get cookie:', error);
       return null;
-    }
-  };
-
-  const eraseCookie = (name) => {
-    // Set cookie with past expiration date to delete it
-    const pastDate = new Date(0).toUTCString();
-    const domain = getDomain();
-    
-    try {
-      // Try to delete with current domain
-      document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; domain=${domain}; path=/; SameSite=None; Secure`;
-      
-      // Also try to delete without domain (for cookies set without domain)
-      document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; path=/; SameSite=None; Secure`;
-      
-      // Try with different path variations
-      document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; domain=${domain}; path=/`;
-      document.cookie = `${encodeURIComponent(name)}=; expires=${pastDate}; path=/`;
-      
-    } catch (error) {
-      console.warn('UpdateFBC: Failed to erase cookie:', error);
     }
   };
 
@@ -953,44 +929,6 @@ function UpdateStpData() {
     }
   };
 
-  const waitForFbcAndUpdate = (retries = 30, interval = 1000) => {
-    return new Promise((resolve, reject) => {
-      const checkAndUpdate = () => {
-        const fbcCookie = getCookie('_fbc');
-        const fbpCookie = getCookie('_fbp');
-        
-        if (fbcCookie) {
-          // Get the latest stp_data in case it was updated while waiting
-          const latestStpDataCookie = getCookie('stp_data');
-          let latestStpData;
-          
-          try {
-            latestStpData = latestStpDataCookie ? JSON.parse(latestStpDataCookie) : {};
-          } catch (e) {
-            latestStpData = {};
-          }
-          
-          if (fbpCookie) {
-            latestStpData.fbp = fbpCookie;
-          }
-
-          // Add fbc to stp_data
-          latestStpData.fbc = fbcCookie;
-          eraseCookie('stp_data');
-          setCookie('stp_data', JSON.stringify(latestStpData));
-          resolve(fbcCookie);
-        } else if (retries > 0) {
-          retries--;
-          setTimeout(checkAndUpdate, interval);
-        } else {
-          reject(new Error('_fbc cookie not found after waiting'));
-        }
-      };
-      
-      checkAndUpdate();
-    });
-  };
-
   // Get the current stp_data cookie
   const stpDataCookie = getCookie('stp_data');
   
@@ -1037,33 +975,6 @@ function UpdateStpData() {
     setCookie("stp_data", JSON.stringify(stpData));
   }
 
-  // Check if fbclid is available in stp_data
-  if (!stpData.fbclid) {
-    return;
-  }
-
-  // Check if fbc is already set in stp_data
-  if (stpData.fbc) {
-    return;
-  }
-
-  // Check if _fbc cookie exists
-  const fbcCookie = getCookie('_fbc');
-  
-  if (fbcCookie) {
-    // _fbc cookie exists, add it to stp_data immediately
-    stpData.fbc = fbcCookie;
-    eraseCookie('stp_data');
-    setCookie('stp_data', JSON.stringify(stpData));
-  } else {
-    // _fbc cookie doesn't exist, wait for it and update stp_data when found    
-    waitForFbcAndUpdate()
-      .then((fbcValue) => {
-      })
-      .catch((error) => {
-        console.warn('UpdateFBC: Failed to get _fbc cookie:', error.message);
-      });
-  }
 }
 
 // Make UpdateFBC available globally

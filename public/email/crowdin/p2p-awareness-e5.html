@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -5,7 +6,7 @@
     <meta name="supported-color-schemes" content="light dark">
     <meta charset="utf-8">
 
-    <title>Trade your way with Deriv</title>
+    <title>Set your country preferences on Deriv P2P</title>
 
     <meta name="viewport" content="width=device-width">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -177,6 +178,11 @@
             text-align: justify;
             text-justify: inter-word;
         }
+        .table-border {
+            border: 1px solid #EBECEF;
+            border-radius: 8px; 
+            overflow: hidden;
+        }
                     
         @media screen and (max-width: 590px)  {
             .button, .button-secondary {
@@ -246,8 +252,8 @@
                 line-height: 22px !important;
             }
             .mb-font-size1{
-                font-size: 20px !important;
-                line-height: 24px !important;
+                font-size: 16px !important;
+                line-height: 23px !important;
             }
             .mb-font-size-table-text{
                 font-size: 13px !important;
@@ -349,55 +355,127 @@
                     <table  border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff; max-width: 600px;" class="darkmodeblack">
                         <tbody>
                             <!-- START HERO -->
-                            <tr>
-                                <td align="center" style="padding: 30px 30px 0; opacity: 100% !important;">
-                                    <a href="https://www.deriv.com">
+                            <tr align="center" class="mobile-hide">
+                                <td align="center" style="padding: 30px 30px 0px; opacity: 100% !important;">
+                                    <a href="https://deriv.com/">
                                         <img src="https://static.deriv.com/logos/deriv-red-2023.png" width="96" style="display: block;" alt="Deriv.com">                                  
                                     </a>
                                 </td>
                             </tr>
+                            <div >
+                                <tr align="center" style="display: none; mso-hide:all;" class="mobile-visible-block">
+                                    <td align="center" style="padding: 30px 30px 0; opacity: 100% !important;">
+                                    <a href="https://deriv.com/">
+                                        <img src="https://static.deriv.com/logos/deriv-red-2023.png" width="79" style="display: block;" alt="Deriv.com">                                  
+                                    </a>
+                                </td>
+                                </tr>  
+                            </div> 
                             <tr>
-                                <td align="center" style="padding: 30px 48px 30px; background-color: #fff;" class="mobile-side darkmodeblack">
-                                    <h1 class="mb-font-size-header" style="font-family: 'Inter', Arial, sans-serif; font-size: 32px; line-height: 40px ; color: #181C25; font-weight: 800; margin:0;">Features that support your trading</h1>
+                                <td align="center" style="padding: 30px 45px 30px; background-color: #fff;" class="mobile-side darkmodeblack">
+                                    <h1 class="mb-font-size-header" style="font-family: 'Inter', Arial, sans-serif; font-size: 32px; line-height: 40px ; color: #181C25; font-weight: 800; margin:0;">Choose who can see your ad</h1>
                                 </td>
                             </tr>
                             <tr align="center" class="mobile-hide">
                                 <td align="center">
-                                    <input type="image" src="https://static.deriv.com/email/images/header-2025/post-tournament4-header.jpg"  width= "600" height="auto"/>
+                                    <input type="image" src="https://static.deriv.com/email/images/header-2025/p2p-awarenes-e5-header.jpg"  width= "600" height="auto"/>
                                 </td>
                             </tr> 
                             <div >
                                 <tr align="center" style="display: none; mso-hide:all;" class="mobile-visible-block">
                                     <td align="center" >
-                                        <input type="image" src="https://static.deriv.com/email/images/header-2025/post-tournament4-header.jpg" width="100%" />
+                                        <input type="image" src="https://static.deriv.com/email/images/header-2025/p2p-awarenes-e5-header.jpg" width="100%" />
                                     </td>
                                 </tr>  
                             </div> 
                             <!-- END HERO -->
                             <tr>
-                                <td align="left" style="padding: 30px 48px 10px; background-color: #fff;" class="mobile-side darkmodeblack">
-                                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">{% if customer.name != blank %} Hi {{customer.name | titlecase }}, {% else %} Hi partner, {% endif %}</p>
+                                <td align="left" style="padding: 20px 48px 10px; background-color: #fff;" class="mobile-side darkmodeblack">
+                                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">You control where your Deriv P2P ad appears. By setting yourpreferred country, you decide who can respond to it and loweryour risk.</p>
                                 </td>
                             </tr>
                             <tr>
-                                <td align="left" style="padding: 8px 48px 10px; background-color: #fff;" class="mobile-side darkmodeblack">
-                                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">You’ve explored the markets — now it’s time to make the most out of them.</p>
+                                <td align="left" style="padding: 08px 48px 20px; background-color: #fff;" class="mobile-side darkmodeblack">
+                                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">Here’s how to set it:</p>
+                                </td>
+                            </tr>
+                            <!--Gray table input desktop-->
+                            <tr>
+                                <td align="center" style="padding: 10px 0px 20px;">
+                                    <table class="mobile-side dark-border-radius" style="width: 85%; margin: auto; background-color: rgba(246, 247, 248, 1); border-radius: 15px; box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);">
+                                        <tr>
+                                            <td style=" padding: 0;" class="dark-border-radius">
+                                                <table>
+                                                    <div style="width: 100%; margin: auto; padding: 0;">
+                                                        <tr>
+                                                            <td align="left" style="padding: 30px 48px 10px 48px;" class="mobile-side dark-border-radius">
+                                                                <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">1. Create a new ad.</p>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="center" style="padding: 0px 45px;" class="mobile-side darkmodelowblack">
+                                                                <input class="body-img" type="image" src="https://static.deriv.com/email/images/design-2025/p2p-step1.png" alt="deposit via" style="margin: 10px auto 10px; width: 100%;">
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="left" style="padding: 20px 48px 0px 48px;" class="mobile-side dark-border-radius">
+                                                                <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">2. Enter your ad details.</p>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="center" style="padding: 0px 45px;" class="mobile-side darkmodelowblack">
+                                                                <input class="body-img" type="image" src="https://static.deriv.com/email/images/design-2025/p2p-step2.png" alt="deposit via" style="margin: 10px auto 10px; width: 100%;">
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="left" style="padding: 20px 48px 0px 48px;" class="mobile-side dark-border-radius">
+                                                                <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">3. On the Set ad conditions page, scroll to Preferred country at the bottom.</p>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="center" style="padding: 5px 45px 0px;" class="mobile-side darkmodelowblack">
+                                                                <input class="body-img" type="image" src="https://static.deriv.com/email/images/design-2025/p2p-step3.png" alt="deposit via" style="margin: 10px auto 10px; width: 100%;">
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="left" style="padding: 20px 48px 0px 48px;" class="mobile-side dark-border-radius">
+                                                                <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">4. Tick the box to include, untick to exclude.</p>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="center" style="padding: 5px 45px 30px;" class="mobile-side darkmodelowblack">
+                                                                <input class="body-img" type="image" src="https://static.deriv.com/email/images/design-2025/p2p-step4.png" alt="deposit via" style="margin: 10px auto 10px; width: 100%;">
+                                                            </td>
+                                                        </tr>
+                                                    </div>
+                                                </table> 
+                                            </td>
+                                        </tr>
+                                    </table>                               
+                                </td>
+                            </tr>
+                            <!--Gray table closing desktop-->
+                            <tr>
+                                <td align="left" style="padding: 20px 48px 20px; background-color: #fff;" class="mobile-side darkmodeblack">
+                                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">For more tips, check our safety guidelines, and if you ever notice suspicious behaviour, report it straight away.</p>
                                 </td>
                             </tr>
                             <tr>
-                                <td align="left" style="padding: 8px 48px 10px; background-color: #fff;" class="mobile-side darkmodeblack">
-                                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">From advanced charting and technical indicators to the variety of markets and instruments, you’ll have what you need to trade with more confidence.</p>
+                                <td align="left" style="padding: 08px 48px 20px; background-color: #fff;" class="mobile-side darkmodeblack">
+                                    <p style="font-family: 'Inter', Arial, sans-serif; font-size: 16px; line-height: 24px; color: #181C25; font-weight: 400;margin:0;" class="darkcolor-subtext mb-font-size">📖 [See safety guidelines]</p>
                                 </td>
                             </tr>
-                             <!-- BUTTON -->
+                            <!-- BUTTON -->
                             <tr>
-                                <td align="center" class="darkmodeblack" style="padding: 30px;">
-                                    <!--[if mso]>
-                                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" 
-                                    xmlns:w="urn:schemas-microsoft-com:office:word" href="https://hub.deriv.com/tradershub/" style="height:40px v-text-anchor:middle;width:230px;" arcsize="30%" strokecolor="#ff444f" fillcolor="#ff444f"> <w:anchorlock/> 
-                                    <center style="color:#ffffff; font-family:'Inter', Arial, sans-serif; font-size:14px; font-weight:bold; letter-spacing: 0.5px;">Trade now</center> </v:roundrect>
-                                    <![endif]--> <!--[if !mso]><!-- -->
-                                    <a class="button" href="https://hub.deriv.com/tradershub/" style="background-color:#ff444f; color:#ffffff !important; display:inline-block; font-family:'Inter', Arial, sans-serif; font-size:16px; font-weight:bold; line-height:44px; text-align:center; text-decoration:none; border-radius: 61px; padding:0 30px; mso-padding-alt:0px; border:0;">Trade now</a>
+                                <td align="center" class="dark-black" style="padding: 30px;">
+                                    <!--[if (gte mso 9)|(IE)]>
+                                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="xxxxx" style="height:40px;v-text-anchor:middle;width:230px;" arcsize="30%" strokecolor="#ff444f" fillcolor="#ff444f">
+                                    <w:anchorlock/>
+                                    <center style="color:#fff;font-family:sans-serif;font-size:14px;font-weight:bold;">Set preferences</center>
+                                    </v:roundrect>
+                                    <![endif]-->
+                                    <!--[if !gte mso 9]><!-- -->
+                                    <a class="button" href="xxxx" target="_blank" style="text-decoration: none; text-align: center; line-height: 20px; padding: 10px 30px; display: inline-block; font-weight: bold; font-family: 'Inter', Arial, sans-serif; font-size: 14px; border-radius: 61px; overflow: visible; border: 0;color: #ffffff; background: #ff444f;">Set preferences</a>
                                     <!--<![endif]-->
                                 </td>
                             </tr>
@@ -409,7 +487,7 @@
                                 </td>
                             </tr>
                             <tr class="mobile-hide">
-                                <td bgcolor="#fff" align="center"  class="mobile-side darkmodeblack" style="padding: 20px 48px 20px;">
+                                <td bgcolor="#fff" align="center"  class="mobile-side darkmodeblack" style="padding: 10px 0px 20px;">
                                     <input type="image" class="g-img" src="https://static.deriv.com/email/images/footer-sm-imgs-2024/awards2025.png"  width= "504" style="display: block;outline:none"/>
                                 </td>
                             </tr>
@@ -453,11 +531,6 @@
                         <!--social media container closing-->
                         <tr>
                             <td bgcolor="#fff" align="left" style="padding: 4px 48px; color: #9498A2; font-family: 'Inter', Arial, sans-serif; font-size: 12px; font-weight: 400; line-height: 18px;-webkit-text-size-adjust: 100%;-ms-text-size-adjust: 100%;mso-table-lspace: 0pt;mso-table-rspace: 0pt;" class="mobile-side darkmodeblack">
-                                <p style="font-family: 'Inter', Arial, sans-serif; color: #9498A2; font-size: 12px; font-weight: 400; line-height: 18px; margin: 0;" class="darkmodegray">The products offered on our website, including CFDs, are complex derivative products that carry a significant risk of potential loss. You should consider whether you understand how these products work and whether you can afford to take the high risk of losing your money. Trading conditions, products, and platforms may differ depending on your country of residence.</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td bgcolor="#fff" align="left" style="padding: 4px 48px; color: #9498A2; font-family: 'Inter', Arial, sans-serif; font-size: 12px; font-weight: 400; line-height: 18px;-webkit-text-size-adjust: 100%;-ms-text-size-adjust: 100%;mso-table-lspace: 0pt;mso-table-rspace: 0pt;" class="mobile-side darkmodeblack">
                                 <p style="font-family: 'Inter', Arial, sans-serif; color: #9498A2; font-size: 12px; font-weight: 400; line-height: 18px; margin: 0;" class="darkmodegray">Deriv (BVI) Ltd is licensed and regulated by the British Virgin Islands Financial Services Commission.</p>
                             </td>
                         </tr>
@@ -474,7 +547,7 @@
                         </tr>
                         <tr>
                             <td bgcolor="#fff" align="left" style="padding: 4px 48px; color: #9498A2; font-family: 'Inter', Arial, sans-serif; font-size: 12px; font-weight: 400; line-height: 18px;-webkit-text-size-adjust: 100%;-ms-text-size-adjust: 100%;mso-table-lspace: 0pt;mso-table-rspace: 0pt;" class="mobile-side darkmodeblack">
-                                <p style="font-family: 'Inter', Arial, sans-serif; color: #9498A2; font-size: 12px; font-weight: 400; line-height: 18px; margin: 0;" class="darkmodegray">Deriv (Mauritius) Ltd is licensed as an Investment Dealer (Full Service Dealer, excluding Underwriting) under the Securities Act 2005 and is regulated by the Financial Services Commission, Mauritius.</p>
+                                <p style="font-family: 'Inter', Arial, sans-serif; color: #9498A2; font-size: 12px; font-weight: 400; line-height: 18px; margin: 0;" class="darkmodegray">Deriv (Mauritius) Ltd is regulated by the Financial Services Commission, Mauritius.</p>
                             </td>
                         </tr>
                         <tr>

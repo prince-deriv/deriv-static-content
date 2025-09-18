@@ -893,7 +893,7 @@ function addStpCookieData() {
   }
 
   // Get the specific GA measurement ID 
-  const gaMeasurementCookieName = "_ga_R0D2Z1965W";
+  const gaMeasurementCookieName = location.hostname.includes("deriv.ae") ? "_ga_F3QTR4CDHR" : "_ga_R0D2Z1965W";
   const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
   if (gaMeasurementCookie) {
     stpData._ga_measurement_id = gaMeasurementCookieName;

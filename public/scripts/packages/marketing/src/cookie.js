@@ -963,7 +963,7 @@ const getCookiesPayloadData = () => {
   addStpCookieData();
   const stapeData = parseJsonCookie('stp_data');
   if (stapeData) {
-    result.stape_data = stapeData;
+    result.marketing_analytics_data = stapeData;
   }
 
   return result;

@@ -945,7 +945,6 @@ const getCookiesPayloadData = () => {
   // Define cookie mappings
   const cookieConfig = [
     { cookieName: 'utm_data', resultKey: 'utm_data', parser: parseJsonCookie },
-    { cookieName: 'affiliate_data', resultKey: 'affiliate_token', parser: parseJsonCookie, property: 'affiliate_token' },
     { cookieName: 'date_first_contact', resultKey: 'date_first_contact', parser: parseJsonCookie, property: 'date_first_contact' },
     { cookieName: 'signup_device', resultKey: 'signup_device', parser: parseJsonCookie, property: 'signup_device' },
     { cookieName: 'campaign_channel', resultKey: 'campaign_channel', parser: getStringCookie }
@@ -958,6 +957,14 @@ const getCookiesPayloadData = () => {
       result[resultKey] = value;
     }
   });
+
+  // Special handling for affiliate_data - return as object with token property
+  const affiliateToken = parseJsonCookie('affiliate_data', 'affiliate_token');
+  if (affiliateToken) {
+    result.affiliate_data = {
+      token: affiliateToken
+    };
+  }
 
   // Special handling for stape_data - call addStpCookieData first
   addStpCookieData();

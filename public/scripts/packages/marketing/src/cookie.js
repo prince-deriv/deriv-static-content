@@ -909,7 +909,7 @@ function addStpCookieData() {
 window.addStpCookieData = addStpCookieData;
 
 // Function to get all marketing cookies data in the specified format
-const getCookiesPayloadData = () => {
+const getMarketingCookiesPayloadData = () => {
   const result = {};
 
   // Helper function to safely parse JSON cookies
@@ -976,5 +976,5 @@ const getCookiesPayloadData = () => {
   return result;
 };
 
-// Make getCookiesPayloadData available globally
-window.getCookiesPayloadData = getCookiesPayloadData;
+// Make getMarketingCookiesPayloadData available globally
+window.getMarketingCookiesPayloadData = getMarketingCookiesPayloadData;

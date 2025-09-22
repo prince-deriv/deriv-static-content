@@ -907,3 +907,74 @@ function addStpCookieData() {
 
 // Make UpdateFBC available globally
 window.addStpCookieData = addStpCookieData;
+
+// Function to get all marketing cookies data in the specified format
+const getMarketingCookiesPayloadData = () => {
+  const result = {};
+
+  // Helper function to safely parse JSON cookies
+  const parseJsonCookie = (cookieName, propertyName = null) => {
+    const cookieValue = getCookie(cookieName);
+    if (!cookieValue) return null;
+
+    try {
+      const parsed = JSON.parse(cookieValue);
+      if (!parsed || (typeof parsed === 'object' && Object.keys(parsed).length === 0)) {
+        return null;
+      }
+      
+      // If propertyName is specified, return that specific property
+      if (propertyName) {
+        return parsed[propertyName] || null;
+      }
+      
+      // Otherwise return the entire parsed object
+      return parsed;
+    } catch (e) {
+      console.error(`Failed to parse ${cookieName} cookie:`, e);
+      return null;
+    }
+  };
+
+  // Helper function to safely get string cookies
+  const getStringCookie = (cookieName) => {
+    const cookieValue = getCookie(cookieName);
+    return cookieValue || null;
+  };
+
+  // Define cookie mappings
+  const cookieConfig = [
+    { cookieName: 'utm_data', resultKey: 'utm_data', parser: parseJsonCookie },
+    { cookieName: 'date_first_contact', resultKey: 'date_first_contact', parser: parseJsonCookie, property: 'date_first_contact' },
+    { cookieName: 'signup_device', resultKey: 'signup_device', parser: parseJsonCookie, property: 'signup_device' },
+    { cookieName: 'campaign_channel', resultKey: 'campaign_channel', parser: getStringCookie }
+  ];
+
+  // Process each cookie configuration
+  cookieConfig.forEach(({ cookieName, resultKey, parser, property }) => {
+    const value = property ? parser(cookieName, property) : parser(cookieName);
+    if (value !== null) {
+      result[resultKey] = value;
+    }
+  });
+
+  // Special handling for affiliate_data - return as object with token property
+  const affiliateToken = parseJsonCookie('affiliate_data', 'affiliate_token');
+  if (affiliateToken) {
+    result.affiliate_data = {
+      token: affiliateToken
+    };
+  }
+
+  // Special handling for stape_data - call addStpCookieData first
+  addStpCookieData();
+  const stapeData = parseJsonCookie('stp_data');
+  if (stapeData) {
+    result.marketing_analytics_data = stapeData;
+  }
+
+  return result;
+};
+
+// Make getMarketingCookiesPayloadData available globally
+window.getMarketingCookiesPayloadData = getMarketingCookiesPayloadData;

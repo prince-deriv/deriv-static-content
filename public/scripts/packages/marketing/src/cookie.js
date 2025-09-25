@@ -509,7 +509,7 @@ function DerivMarketingCookies() {
 
   // Determine if we should overwrite existing data
   const should_overwrite = shouldOverwrite(new_utm_data, current_utm_data);
-  
+  const landing_page_url = location.origin + location.pathname;
   if (should_overwrite) {
     // Always erase affiliate_tracking and affiliate_data when overwriting
     eraseCookie("affiliate_tracking");
@@ -517,6 +517,7 @@ function DerivMarketingCookies() {
     
     eraseCookie("utm_data");
     setCookie("utm_data", JSON.stringify(new_utm_data));
+    setCookie("landing_page_url", landing_page_url)
     overwrite_happened = true;
     utm_data = new_utm_data;
   } else {
@@ -527,6 +528,7 @@ function DerivMarketingCookies() {
     // Only update cookie if there's new data to add
     if (Object.keys(new_utm_data).length > 0) {
       setCookie("utm_data", JSON.stringify(utm_data));
+      setCookie("landing_page_url", landing_page_url)
     }
   }
   /* end handling UTMs */
@@ -947,6 +949,7 @@ const getMarketingCookiesPayloadData = () => {
     { cookieName: 'utm_data', resultKey: 'utm_data', parser: parseJsonCookie },
     { cookieName: 'date_first_contact', resultKey: 'date_first_contact', parser: parseJsonCookie, property: 'date_first_contact' },
     { cookieName: 'signup_device', resultKey: 'signup_device', parser: parseJsonCookie, property: 'signup_device' },
+    { cookieName: 'landing_page_url', resultKey: 'landing_page_url', parser: getStringCookie },
     { cookieName: 'campaign_channel', resultKey: 'campaign_channel', parser: getStringCookie }
   ];
 

@@ -30,7 +30,7 @@ const sanitizeCookieValue = (name, value) => {
 
 const getDomain = () => {
   const host_domain = location.hostname;
-  const allowed_domains = ["deriv.com", "binary.sx"];
+  const allowed_domains = ["deriv.com", "deriv.ae", "binary.sx"];
 
   const matched_domain = allowed_domains.find((allowed_domain) =>
     host_domain.includes(allowed_domain)
@@ -509,7 +509,7 @@ function DerivMarketingCookies() {
 
   // Determine if we should overwrite existing data
   const should_overwrite = shouldOverwrite(new_utm_data, current_utm_data);
-  
+  const landing_page_url = location.origin + location.pathname;
   if (should_overwrite) {
     // Always erase affiliate_tracking and affiliate_data when overwriting
     eraseCookie("affiliate_tracking");
@@ -517,6 +517,7 @@ function DerivMarketingCookies() {
     
     eraseCookie("utm_data");
     setCookie("utm_data", JSON.stringify(new_utm_data));
+    setCookie("landing_page_url", landing_page_url)
     overwrite_happened = true;
     utm_data = new_utm_data;
   } else {
@@ -527,6 +528,7 @@ function DerivMarketingCookies() {
     // Only update cookie if there's new data to add
     if (Object.keys(new_utm_data).length > 0) {
       setCookie("utm_data", JSON.stringify(utm_data));
+      setCookie("landing_page_url", landing_page_url)
     }
   }
   /* end handling UTMs */
@@ -893,7 +895,7 @@ function addStpCookieData() {
   }
 
   // Get the specific GA measurement ID 
-  const gaMeasurementCookieName = "_ga_R0D2Z1965W";
+  const gaMeasurementCookieName = location.hostname.includes("deriv.ae") ? "_ga_F3QTR4CDHR" : "_ga_R0D2Z1965W";
   const gaMeasurementCookie = getCookie(gaMeasurementCookieName);
   if (gaMeasurementCookie) {
     stpData._ga_measurement_id = gaMeasurementCookieName;
@@ -907,3 +909,89 @@ function addStpCookieData() {
 
 // Make UpdateFBC available globally
 window.addStpCookieData = addStpCookieData;
+
+// Function to get all marketing cookies data in the specified format
+const getMarketingCookiesPayloadData = () => {
+  const result = {};
+
+  // Helper function to safely parse JSON cookies
+  const parseJsonCookie = (cookieName, propertyName = null) => {
+    const cookieValue = getCookie(cookieName);
+    if (!cookieValue) return null;
+
+    try {
+      const parsed = JSON.parse(cookieValue);
+      if (!parsed || (typeof parsed === 'object' && Object.keys(parsed).length === 0)) {
+        return null;
+      }
+      
+      // If propertyName is specified, return that specific property
+      if (propertyName) {
+        return parsed[propertyName] || null;
+      }
+      
+      // Otherwise return the entire parsed object
+      return parsed;
+    } catch (e) {
+      console.error(`Failed to parse ${cookieName} cookie:`, e);
+      return null;
+    }
+  };
+
+  // Helper function to safely get string cookies
+  const getStringCookie = (cookieName) => {
+    const cookieValue = getCookie(cookieName);
+    return cookieValue || null;
+  };
+
+  // Define cookie mappings
+  const cookieConfig = [
+    { cookieName: 'utm_data', resultKey: 'utm_data', parser: parseJsonCookie },
+    { cookieName: 'date_first_contact', resultKey: 'date_first_contact', parser: parseJsonCookie, property: 'date_first_contact' },
+    { cookieName: 'signup_device', resultKey: 'signup_device', parser: parseJsonCookie, property: 'signup_device' },
+    { cookieName: 'landing_page_url', resultKey: 'landing_page_url', parser: getStringCookie },
+    { cookieName: 'campaign_channel', resultKey: 'campaign_channel', parser: getStringCookie }
+  ];
+
+  // Process each cookie configuration - add safety check
+  if (cookieConfig && Array.isArray(cookieConfig)) {
+    cookieConfig.forEach(({ cookieName, resultKey, parser, property }) => {
+      try {
+        const value = property ? parser(cookieName, property) : parser(cookieName);
+        if (value !== null) {
+          result[resultKey] = value;
+        }
+      } catch (error) {
+        console.error(`Error processing cookie ${cookieName}:`, error);
+      }
+    });
+  }
+
+  // Special handling for affiliate_data - return as object with token property
+  try {
+    const affiliateToken = parseJsonCookie('affiliate_data', 'affiliate_token');
+    if (affiliateToken) {
+      result.affiliate_data = {
+        token: affiliateToken
+      };
+    }
+  } catch (error) {
+    console.error('Error processing affiliate_data:', error);
+  }
+
+  // Special handling for stape_data - call addStpCookieData first
+  try {
+    addStpCookieData();
+    const stapeData = parseJsonCookie('stp_data');
+    if (stapeData) {
+      result.marketing_analytics_data = stapeData;
+    }
+  } catch (error) {
+    console.error('Error processing stp_data:', error);
+  }
+
+  return result;
+};
+
+// Make getMarketingCookiesPayloadData available globally
+window.getMarketingCookiesPayloadData = getMarketingCookiesPayloadData;

@@ -953,27 +953,41 @@ const getMarketingCookiesPayloadData = () => {
     { cookieName: 'campaign_channel', resultKey: 'campaign_channel', parser: getStringCookie }
   ];
 
-  // Process each cookie configuration
-  cookieConfig.forEach(({ cookieName, resultKey, parser, property }) => {
-    const value = property ? parser(cookieName, property) : parser(cookieName);
-    if (value !== null) {
-      result[resultKey] = value;
-    }
-  });
+  // Process each cookie configuration - add safety check
+  if (cookieConfig && Array.isArray(cookieConfig)) {
+    cookieConfig.forEach(({ cookieName, resultKey, parser, property }) => {
+      try {
+        const value = property ? parser(cookieName, property) : parser(cookieName);
+        if (value !== null) {
+          result[resultKey] = value;
+        }
+      } catch (error) {
+        console.error(`Error processing cookie ${cookieName}:`, error);
+      }
+    });
+  }
 
   // Special handling for affiliate_data - return as object with token property
-  const affiliateToken = parseJsonCookie('affiliate_data', 'affiliate_token');
-  if (affiliateToken) {
-    result.affiliate_data = {
-      token: affiliateToken
-    };
+  try {
+    const affiliateToken = parseJsonCookie('affiliate_data', 'affiliate_token');
+    if (affiliateToken) {
+      result.affiliate_data = {
+        token: affiliateToken
+      };
+    }
+  } catch (error) {
+    console.error('Error processing affiliate_data:', error);
   }
 
   // Special handling for stape_data - call addStpCookieData first
-  addStpCookieData();
-  const stapeData = parseJsonCookie('stp_data');
-  if (stapeData) {
-    result.marketing_analytics_data = stapeData;
+  try {
+    addStpCookieData();
+    const stapeData = parseJsonCookie('stp_data');
+    if (stapeData) {
+      result.marketing_analytics_data = stapeData;
+    }
+  } catch (error) {
+    console.error('Error processing stp_data:', error);
   }
 
   return result;
